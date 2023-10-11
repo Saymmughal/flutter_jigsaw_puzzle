@@ -267,11 +267,6 @@ Set<double> topPosition(
     double minTopValue,
     double maxLeftValue,
     double minLeftValue) {
-  // double maxTopValue = 300;
-  // double minTopValue = -280;
-
-  // double maxLeftValue = 288;
-  // double minLeftValue = -270;
 
   // Set the Range to Top to Bottom
   double totalRows = (maxRow - 1);

@@ -7,8 +7,7 @@ import 'package:jigsaw_puzzle/puzzle_piece.dart';
 
 class MyHomePage extends StatefulWidget {
   final String title;
-  final int rows = 5;
-  final int cols = 5;
+  final int gridSize = 3;
   final double imageHeight = 400;
   final double imageWidth = 384;
 
@@ -55,26 +54,6 @@ class _MyHomePageState extends State<MyHomePage> {
     debugPrint("All pieces are in the correct positions!");
   }
 
-  // we need to find out the image size, to be used in the PuzzlePiece widget
-  // Future<Size> getImageSize(Image image) async {
-  //   final Completer<Size> completer = Completer<Size>();
-
-  //   final listener = ImageStreamListener(
-  //     (ImageInfo info, bool synchronousCall) {
-  //       completer.complete(Size(
-  //         info.image.width.toDouble(),
-  //         info.image.height.toDouble(),
-  //       ));
-  //     },
-  //   );
-
-  //   image.image.resolve(const ImageConfiguration()).addListener(listener);
-
-  //   final Size imageSize = await completer.future;
-
-  //   return imageSize;
-  // }
-
   // here we will split the image into small pieces using the rows and columns defined above; each piece will be added to a stack
   void splitImage(Image currentImage) async {
     Image image = Image(
@@ -83,10 +62,11 @@ class _MyHomePageState extends State<MyHomePage> {
       height: widget.imageHeight, // Set the desired height here
       width: widget.imageWidth, // Set the desired width here
     );
-    // Size imageSize = await getImageSize(image);
     piecePositions.clear();
-    for (int x = 0; x < widget.rows; x++) {
-      for (int y = 0; y < widget.cols; y++) {
+    for (int x = 0; x < widget.gridSize; x++) {
+      // Total Rows
+      for (int y = 0; y < widget.gridSize; y++) {
+        // Total Colunms
         setState(() {
           pieces.add(PuzzlePiece(
             key: GlobalKey(),
@@ -94,8 +74,8 @@ class _MyHomePageState extends State<MyHomePage> {
             imageSize: Size(widget.imageWidth, widget.imageHeight),
             row: x,
             col: y,
-            maxRow: widget.rows,
-            maxCol: widget.cols,
+            maxRow: widget.gridSize,
+            maxCol: widget.gridSize,
             bringToTop: bringToTop,
             sendToBack: sendToBack,
             onAllPiecesCorrect: checkAllPiecesInCorrectPosition,
@@ -107,10 +87,6 @@ class _MyHomePageState extends State<MyHomePage> {
         });
       }
     }
-    debugPrint('Pieces Position ===============> ${pieces.length}');
-    debugPrint('Pieces Position ===============> $piecePositions');
-    debugPrint(
-        'Pieces Position Length ===============> ${piecePositions.length}');
   }
 
   // Reset Puzzle
