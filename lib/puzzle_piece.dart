@@ -39,12 +39,20 @@ class PuzzlePieceState extends State<PuzzlePiece> {
 
   @override
   Widget build(BuildContext context) {
-    final imageWidth = MediaQuery.of(context).size.width;
-    final imageHeight = MediaQuery.of(context).size.height *
-        MediaQuery.of(context).size.width /
+    final imageWidth = widget.imageSize.width;
+    final imageHeight = widget.imageSize.height *
+        widget.imageSize.width /
         widget.imageSize.width;
     final pieceWidth = imageWidth / widget.maxCol;
     final pieceHeight = imageHeight / widget.maxRow;
+
+    double maxTopValue = pieceHeight * (widget.maxRow - 1);
+    double minTopValue =
+        (((widget.maxCol * widget.maxRow) + widget.row) - maxTopValue);
+
+    double maxLeftValue = pieceWidth * (widget.maxCol - 1);
+    double minLeftValue =
+        (((widget.maxCol * widget.maxRow) + widget.col) - maxLeftValue);
 
     if (top == null) {
       top = Random().nextInt((imageHeight - pieceHeight).ceil()).toDouble();
@@ -54,6 +62,20 @@ class PuzzlePieceState extends State<PuzzlePiece> {
       left = Random().nextInt((imageWidth - pieceWidth).ceil()).toDouble();
       left = left! - (widget.col * pieceWidth);
     }
+    final positions = topPosition(
+        widget.maxCol,
+        widget.maxRow,
+        widget.col,
+        widget.row,
+        top!,
+        left!,
+        maxTopValue,
+        minTopValue,
+        maxLeftValue,
+        minLeftValue);
+
+    top = positions.first;
+    left = positions.last;
     return Positioned(
       top: top,
       left: left,
@@ -75,8 +97,17 @@ class PuzzlePieceState extends State<PuzzlePiece> {
               top = top! + dragUpdateDetails.delta.dy;
               left = left! + dragUpdateDetails.delta.dx;
 
-              final positionValue = topPosition(widget.maxCol, widget.maxRow,
-                  widget.col, widget.row, top!, left!);
+              final positionValue = topPosition(
+                  widget.maxCol,
+                  widget.maxRow,
+                  widget.col,
+                  widget.row,
+                  top!,
+                  left!,
+                  maxTopValue,
+                  minTopValue,
+                  maxLeftValue,
+                  minLeftValue);
 
               top = positionValue.first;
               left = positionValue.last;
@@ -225,13 +256,22 @@ Path getPiecePath(Size size, int row, int col, int maxRow, int maxCol) {
   return path;
 }
 
-Set<double> topPosition(int maxCol, int maxRow, int currentCol, int currentRow,
-    double top, double left) {
-  double maxTopValue = 300;
-  double minTopValue = -280;
+Set<double> topPosition(
+    int maxCol,
+    int maxRow,
+    int currentCol,
+    int currentRow,
+    double top,
+    double left,
+    double maxTopValue,
+    double minTopValue,
+    double maxLeftValue,
+    double minLeftValue) {
+  // double maxTopValue = 300;
+  // double minTopValue = -280;
 
-  double maxLeftValue = 288;
-  double minLeftValue = -270;
+  // double maxLeftValue = 288;
+  // double minLeftValue = -270;
 
   // Set the Range to Top to Bottom
   double totalRows = (maxRow - 1);

@@ -7,8 +7,10 @@ import 'package:jigsaw_puzzle/puzzle_piece.dart';
 
 class MyHomePage extends StatefulWidget {
   final String title;
-  final int rows = 4;
-  final int cols = 4;
+  final int rows = 5;
+  final int cols = 5;
+  final double imageHeight = 400;
+  final double imageWidth = 384;
 
   const MyHomePage({Key? key, required this.title}) : super(key: key);
 
@@ -54,34 +56,34 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   // we need to find out the image size, to be used in the PuzzlePiece widget
-  Future<Size> getImageSize(Image image) async {
-    final Completer<Size> completer = Completer<Size>();
+  // Future<Size> getImageSize(Image image) async {
+  //   final Completer<Size> completer = Completer<Size>();
 
-    final listener = ImageStreamListener(
-      (ImageInfo info, bool synchronousCall) {
-        completer.complete(Size(
-          info.image.width.toDouble(),
-          info.image.height.toDouble(),
-        ));
-      },
-    );
+  //   final listener = ImageStreamListener(
+  //     (ImageInfo info, bool synchronousCall) {
+  //       completer.complete(Size(
+  //         info.image.width.toDouble(),
+  //         info.image.height.toDouble(),
+  //       ));
+  //     },
+  //   );
 
-    image.image.resolve(const ImageConfiguration()).addListener(listener);
+  //   image.image.resolve(const ImageConfiguration()).addListener(listener);
 
-    final Size imageSize = await completer.future;
+  //   final Size imageSize = await completer.future;
 
-    return imageSize;
-  }
+  //   return imageSize;
+  // }
 
   // here we will split the image into small pieces using the rows and columns defined above; each piece will be added to a stack
   void splitImage(Image currentImage) async {
     Image image = Image(
       fit: BoxFit.cover,
       image: currentImage.image, // Reuse the same image
-      height: 400, // Set the desired height here
-      width: 400, // Set the desired width here
+      height: widget.imageHeight, // Set the desired height here
+      width: widget.imageWidth, // Set the desired width here
     );
-    Size imageSize = await getImageSize(image);
+    // Size imageSize = await getImageSize(image);
     piecePositions.clear();
     for (int x = 0; x < widget.rows; x++) {
       for (int y = 0; y < widget.cols; y++) {
@@ -89,7 +91,7 @@ class _MyHomePageState extends State<MyHomePage> {
           pieces.add(PuzzlePiece(
             key: GlobalKey(),
             image: image,
-            imageSize: imageSize,
+            imageSize: Size(widget.imageWidth, widget.imageHeight),
             row: x,
             col: y,
             maxRow: widget.rows,
@@ -151,13 +153,9 @@ class _MyHomePageState extends State<MyHomePage> {
                           decoration: BoxDecoration(
                             color: Colors.grey.shade300,
                           ),
-                          // child: BoundedStack(
-                          //   width: 300, // Width of the stack
-                          //   height: 300, // Height of the stack,
-                          //   children: pieces,
-                          // )
                           clipBehavior: Clip.hardEdge,
-                          height: 400,
+                          height: widget.imageHeight,
+                          width: widget.imageWidth,
                           child: Stack(children: pieces)),
                       const SizedBox(
                         height: 60,
