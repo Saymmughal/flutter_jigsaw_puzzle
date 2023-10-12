@@ -40,53 +40,55 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   void checkAllPiecesInCorrectPosition(int row, int col) {
-    piecePositions.removeWhere((element) =>
-        element.dx == row.toDouble() && element.dy == col.toDouble());
+  final removedPiece = Offset(row.toDouble(), col.toDouble());
 
-    if (piecePositions.isEmpty) {
-      // Trigger your callback function here when all pieces are correct
-      onAllPiecesCorrect();
-    }
+  if (piecePositions.remove(removedPiece) && piecePositions.isEmpty) {
+    // Trigger your callback function here when all pieces are correct
+    onAllPiecesCorrect();
   }
-
+}
   void onAllPiecesCorrect() {
     // Perform your action here
     debugPrint("All pieces are in the correct positions!");
   }
 
   // here we will split the image into small pieces using the rows and columns defined above; each piece will be added to a stack
-  void splitImage(Image currentImage) async {
+  void splitImage(Image currentImage) {
     Image image = Image(
       fit: BoxFit.cover,
       image: currentImage.image, // Reuse the same image
       height: widget.imageHeight, // Set the desired height here
       width: widget.imageWidth, // Set the desired width here
     );
+
     piecePositions.clear();
+    List<PuzzlePiece> newPieces = [];
+
     for (int x = 0; x < widget.gridSize; x++) {
-      // Total Rows
+      // Rows
       for (int y = 0; y < widget.gridSize; y++) {
-        // Total Colunms
-        setState(() {
-          pieces.add(PuzzlePiece(
+        // Colunms
+        newPieces.add(
+          PuzzlePiece(
             key: GlobalKey(),
             image: image,
             imageSize: Size(widget.imageWidth, widget.imageHeight),
             row: x,
             col: y,
-            maxRow: widget.gridSize,
-            maxCol: widget.gridSize,
+            gridSize: widget.gridSize,
             bringToTop: bringToTop,
             sendToBack: sendToBack,
             onAllPiecesCorrect: checkAllPiecesInCorrectPosition,
-          ));
+          ),
+        );
 
-          // Calculate the initial position and add it to piecePositions
-          piecePositions.add(Offset(
-              double.tryParse(x.toString())!, double.tryParse(y.toString())!));
-        });
+        piecePositions.add(Offset(x.toDouble(), y.toDouble()));
       }
     }
+
+    setState(() {
+      pieces = newPieces;
+    });
   }
 
   // Reset Puzzle

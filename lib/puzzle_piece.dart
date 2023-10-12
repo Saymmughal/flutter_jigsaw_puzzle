@@ -7,8 +7,7 @@ class PuzzlePiece extends StatefulWidget {
   final Size imageSize;
   final int row;
   final int col;
-  final int maxRow;
-  final int maxCol;
+  final int gridSize;
   final Function bringToTop;
   final Function sendToBack;
   final Function onAllPiecesCorrect;
@@ -19,8 +18,7 @@ class PuzzlePiece extends StatefulWidget {
       required this.imageSize,
       required this.row,
       required this.col,
-      required this.maxRow,
-      required this.maxCol,
+      required this.gridSize,
       required this.bringToTop,
       required this.sendToBack,
       required this.onAllPiecesCorrect})
@@ -40,42 +38,29 @@ class PuzzlePieceState extends State<PuzzlePiece> {
   @override
   Widget build(BuildContext context) {
     final imageWidth = widget.imageSize.width;
-    final imageHeight = widget.imageSize.height *
-        widget.imageSize.width /
-        widget.imageSize.width;
-    final pieceWidth = imageWidth / widget.maxCol;
-    final pieceHeight = imageHeight / widget.maxRow;
+    final imageHeight = widget.imageSize.height;
+    final pieceWidth = imageWidth / widget.gridSize;
+    final pieceHeight = imageHeight / widget.gridSize;
 
-    double maxTopValue = pieceHeight * (widget.maxRow - 1);
+    double maxTopValue = pieceHeight * (widget.gridSize - 1);
     double minTopValue =
-        (((widget.maxCol * widget.maxRow) + widget.row) - maxTopValue);
+        (widget.gridSize * widget.gridSize) - maxTopValue + widget.row;
 
-    double maxLeftValue = pieceWidth * (widget.maxCol - 1);
+    double maxLeftValue = pieceWidth * (widget.gridSize - 1);
     double minLeftValue =
-        (((widget.maxCol * widget.maxRow) + widget.col) - maxLeftValue);
+        (widget.gridSize * widget.gridSize) - maxLeftValue + widget.col;
 
-    if (top == null) {
-      top = Random().nextInt((imageHeight - pieceHeight).ceil()).toDouble();
-      top = top! - (widget.row * pieceHeight);
-    }
-    if (left == null) {
-      left = Random().nextInt((imageWidth - pieceWidth).ceil()).toDouble();
-      left = left! - (widget.col * pieceWidth);
-    }
-    final positions = topPosition(
-        widget.maxCol,
-        widget.maxRow,
-        widget.col,
-        widget.row,
-        top!,
-        left!,
-        maxTopValue,
-        minTopValue,
-        maxLeftValue,
-        minLeftValue);
+    top ??= (Random().nextInt((imageHeight - pieceHeight).ceil()).toDouble() -
+        widget.row * pieceHeight);
+    left ??= (Random().nextInt((imageWidth - pieceWidth).ceil()).toDouble() -
+        widget.col * pieceWidth);
+
+    final positions = topPosition(widget.gridSize, widget.col, widget.row, top!,
+        left!, maxTopValue, minTopValue, maxLeftValue, minLeftValue);
 
     top = positions.first;
     left = positions.last;
+
     return Positioned(
       top: top,
       left: left,
@@ -98,8 +83,7 @@ class PuzzlePieceState extends State<PuzzlePiece> {
               left = left! + dragUpdateDetails.delta.dx;
 
               final positionValue = topPosition(
-                  widget.maxCol,
-                  widget.maxRow,
+                  widget.gridSize,
                   widget.col,
                   widget.row,
                   top!,
@@ -124,11 +108,12 @@ class PuzzlePieceState extends State<PuzzlePiece> {
         },
         child: ClipPath(
           clipper: PuzzlePieceClipper(
-              widget.row, widget.col, widget.maxRow, widget.maxCol),
+              widget.row, widget.col,widget.gridSize),
           child: CustomPaint(
-              foregroundPainter: PuzzlePiecePainter(
-                  widget.row, widget.col, widget.maxRow, widget.maxCol),
-              child: widget.image),
+            foregroundPainter: PuzzlePiecePainter(
+                widget.row, widget.col,widget.gridSize),
+            child: widget.image,
+          ),
         ),
       ),
     );
@@ -139,14 +124,13 @@ class PuzzlePieceState extends State<PuzzlePiece> {
 class PuzzlePieceClipper extends CustomClipper<Path> {
   final int row;
   final int col;
-  final int maxRow;
-  final int maxCol;
+  final int gridSize;
 
-  PuzzlePieceClipper(this.row, this.col, this.maxRow, this.maxCol);
+  PuzzlePieceClipper(this.row, this.col, this.gridSize);
 
   @override
   Path getClip(Size size) {
-    return getPiecePath(size, row, col, maxRow, maxCol);
+    return getPiecePath(size, row, col, gridSize);
   }
 
   @override
@@ -157,10 +141,9 @@ class PuzzlePieceClipper extends CustomClipper<Path> {
 class PuzzlePiecePainter extends CustomPainter {
   final int row;
   final int col;
-  final int maxRow;
-  final int maxCol;
+  final int gridSize;
 
-  PuzzlePiecePainter(this.row, this.col, this.maxRow, this.maxCol);
+  PuzzlePiecePainter(this.row, this.col, this.gridSize);
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -169,7 +152,7 @@ class PuzzlePiecePainter extends CustomPainter {
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1.0;
 
-    canvas.drawPath(getPiecePath(size, row, col, maxRow, maxCol), paint);
+    canvas.drawPath(getPiecePath(size, row, col, gridSize), paint);
   }
 
   @override
@@ -179,9 +162,9 @@ class PuzzlePiecePainter extends CustomPainter {
 }
 
 // this is the path used to clip the image and, then, to draw a border around it; here we actually draw the puzzle piece
-Path getPiecePath(Size size, int row, int col, int maxRow, int maxCol) {
-  final width = size.width / maxCol;
-  final height = size.height / maxRow;
+Path getPiecePath(Size size, int row, int col, int gridSize) {
+  final width = size.width / gridSize;
+  final height = size.height / gridSize;
   final offsetX = col * width;
   final offsetY = row * height;
   final bumpSize = height / 4;
@@ -205,7 +188,7 @@ Path getPiecePath(Size size, int row, int col, int maxRow, int maxCol) {
     path.lineTo(offsetX + width, offsetY);
   }
 
-  if (col == maxCol - 1) {
+  if (col == gridSize - 1) {
     // right side piece
     path.lineTo(offsetX + width, offsetY + height);
   } else {
@@ -221,7 +204,7 @@ Path getPiecePath(Size size, int row, int col, int maxRow, int maxCol) {
     path.lineTo(offsetX + width, offsetY + height);
   }
 
-  if (row == maxRow - 1) {
+  if (row == gridSize - 1) {
     // bottom side piece
     path.lineTo(offsetX, offsetY + height);
   } else {
@@ -257,8 +240,7 @@ Path getPiecePath(Size size, int row, int col, int maxRow, int maxCol) {
 }
 
 Set<double> topPosition(
-    int maxCol,
-    int maxRow,
+    int gridSize,
     int currentCol,
     int currentRow,
     double top,
@@ -267,36 +249,20 @@ Set<double> topPosition(
     double minTopValue,
     double maxLeftValue,
     double minLeftValue) {
+  double totalGridSize = gridSize - 1;
 
-  // Set the Range to Top to Bottom
-  double totalRows = (maxRow - 1);
+  double maxSingleTop = maxTopValue / totalGridSize;
+  double minSingleTop = minTopValue / totalGridSize;
+  double maxSingleLeft = maxLeftValue / totalGridSize;
+  double minSingleLeft = minLeftValue / totalGridSize;
 
-  double maxSingleTop = (maxTopValue / totalRows);
-  double minSingleTop = (minTopValue / totalRows);
+  double expactedMinTop = currentRow == 0 ? 0 : currentRow * minSingleTop;
+  double expactedMaxTop = (totalGridSize - currentRow) * maxSingleTop;
+  double expactedMinLeft = currentCol == 0 ? 0 : currentCol * minSingleLeft;
+  double expactedMaxLeft = (totalGridSize - currentCol) * maxSingleLeft;
 
-  double expactedMinTop = currentRow == 0.0 ? 0.0 : (currentRow * minSingleTop);
-  double expactedMaxTop = (totalRows - currentRow) * maxSingleTop;
-
-  if (top > expactedMaxTop) {
-    top = expactedMaxTop;
-  } else if (top < expactedMinTop) {
-    top = expactedMinTop;
-  }
-
-  //Set the range to Left to Right
-  double totalCols = (maxCol - 1);
-
-  double maxSingleLeft = (maxLeftValue / totalCols);
-  double minSingleLeft = (minLeftValue / totalCols);
-
-  double expactedMinLeft = currentCol == 0 ? 0 : (currentCol * minSingleLeft);
-  double expactedMaxLeft = (totalCols - currentCol) * maxSingleLeft;
-
-  if (left > expactedMaxLeft) {
-    left = expactedMaxLeft;
-  } else if (left < expactedMinLeft) {
-    left = expactedMinLeft;
-  }
+  top = top.clamp(expactedMinTop, expactedMaxTop);
+  left = left.clamp(expactedMinLeft, expactedMaxLeft);
 
   return {top, left};
 }
