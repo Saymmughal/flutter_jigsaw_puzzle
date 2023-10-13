@@ -12,7 +12,7 @@ class PuzzleView extends StatefulWidget {
   final VoidCallback? onCompleted;
 
   const PuzzleView(
-      {Key? key,
+      {required Key key,
       required this.image,
       required this.height,
       required this.width,
